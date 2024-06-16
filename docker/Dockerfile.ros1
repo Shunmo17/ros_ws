@@ -1,0 +1,16 @@
+ARG BASE_IMAGE=ghcr.io/shunmo17/ros1:noetic-desktop-cuda12.1
+FROM ${BASE_IMAGE}
+
+# install audio requirements
+RUN apt update && apt install -y \
+    pulseaudio \
+    ffmpeg \
+    alsa-utils \
+    libsdl2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# isstall ros dependencies
+RUN --mount=type=bind,source=workspace/ros1_ws,dst=/tmp/workspace \
+    apt update &&\
+    rosdep update --rosdistro ${ROS_DISTRO} &&\
+    rosdep install -iy --from-paths /tmp/workspace 

@@ -1,0 +1,29 @@
+services:
+  ros_common:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
+    environment:
+      # audio
+      - PULSE_SERVER=/mnt/wslg/PulseServer
+      # ssh
+      - LAUNCH_SSH_SERVER=${LAUNCH_SSH_SERVER:-true}
+
+    user: user
+    working_dir: /home/user/workspace
+
+    volumes:
+      # ssh
+      - /home/$USER/.ssh/authorized_keys:/tmp/authorized_keys:ro
+      - /home/$USER/.ssh/id_rsa:/tmp/id_rsa:ro
+      # device
+      - /dev:/dev:rw
+      # audio
+      - /mnt/wslg:/mnt/wslg
+      # workspace
+      - ./../workspace:/home/user/workspace:rw

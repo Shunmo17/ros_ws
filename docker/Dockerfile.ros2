@@ -1,0 +1,17 @@
+ARG BASE_IMAGE=ghcr.io/shunmo17/ros2:foxy-cuda11.7
+FROM ${BASE_IMAGE}
+
+# install audio requirements
+RUN apt update && apt install -y \
+    pulseaudio \
+    ffmpeg \
+    alsa-utils \
+    libsdl2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# isstall ros dependencies
+RUN --mount=type=bind,source=workspace/ros2_ws,dst=/tmp/workspace \
+    apt update &&\
+    rosdep update --rosdistro ${ROS_DISTRO} --include-eol-distros &&\
+    rosdep install -iy --from-paths /tmp/workspace/src &&\
+    pip install -r /tmp/workspace/src/whisper_ros/requirements.txt

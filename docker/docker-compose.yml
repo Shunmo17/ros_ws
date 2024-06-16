@@ -1,0 +1,91 @@
+services:
+  ros1:
+    container_name: ros1
+    hostname: ros1
+
+    extends:
+      file: docker-compose.common.yml
+      service: ros_common
+
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.ros1
+      args:
+        BASE_IMAGE: ghcr.io/shunmo17/ros1:noetic-desktop-cuda12.1
+    image: ghcr.io/shunmo17/ros1_ws:noetic-desktop-cuda12.1
+
+    environment:
+      # desktop
+      - TZ=UTC
+      - SIZEW=${SIZEW:-1920}
+      - SIZEH=${SIZEH:-1080}
+      - REFRESH=${REFRESH:-60}
+      - DPI=${DPI:-96}
+      - PASSWD=${PASSWD:-user}
+      - BASIC_AUTH_PASSWORD=${PASSWD:-user}
+      - CDEPTH=24
+      - VIDEO_PORT=DFP
+      - WEBRTC_ENCODER=nvh264enc
+      - NOVNC_ENABLE=true
+
+    ports:
+      - "${WEB_RTC_PORT:-8080}:8080"
+      - "${VNC_PORT:-5900}:5900"
+      - "${ROS1_SSH_PORT:-222}:222"
+
+    tmpfs: /dev/shm:rw
+
+  ros2:
+    container_name: ros2
+    hostname: ros2
+
+    extends:
+      file: docker-compose.common.yml
+      service: ros_common
+
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.ros2
+      args:
+        BASE_IMAGE: ghcr.io/shunmo17/ros2:humble-cuda11.7
+    image: ghcr.io/shunmo17/ros2_ws:humble-cuda11.7
+
+    ports:
+      - "${ROS2_SSH_PORT:-223}:222"
+
+  melotts:
+    container_name: melotts
+    hostname: melotts
+    image:  ghcr.io/shunmo17/melotts:latest
+  
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
+    environment:
+      - DEFAULT_SPEED=1
+      - DEFAULT_LANGUAGE=EN
+      - DEFAULT_SPEAKER_ID=EN-US
+
+    ports:
+      - 8888:8080
+
+  voicevox:
+    container_name: voicevox
+    hostname: voicevox
+    image: voicevox/voicevox_engine:nvidia-ubuntu20.04-latest
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
+    ports:
+      - 50021:50021
